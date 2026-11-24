@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEnT-S Simulator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>window.tailwind = window.tailwind || {}; window.tailwind.config = { darkMode: 'class' };</script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="light profile-dima min-h-screen flex flex-col pb-16 transition-colors duration-300">
+
+    <div id="selection-tooltip" class="hide flex items-center gap-1.5 p-1.5 rounded-2xl shadow-2xl border">
+        <button type="button" id="sel-to-dict-btn" class="px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">В словарь 📖+</button>
+        <button type="button" id="sel-to-trans-btn" class="profile-accent-btn px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer">В переводчик 🌐</button>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="glass-nav fixed top-0 w-full z-40 border-b">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-1.5 sm:gap-3 min-w-0">
+                <h1 class="text-sm sm:text-xl font-bold tracking-tight cursor-pointer flex-shrink-0" onclick="switchTab('home')">CEnT-S</h1>
+                <div class="flex items-center gap-1 min-w-0">
+                    <button type="button" id="account-menu-btn" onclick="handleAccountButtonClick()" class="custom-styled-select text-[11px] sm:text-sm font-semibold rounded-full px-3 sm:px-4 py-1 sm:py-1.5 outline-none cursor-pointer transition inline-flex items-center gap-1.5 whitespace-nowrap flex-shrink-0" id="account-menu-title-attr">
+                        <span id="account-avatar-emoji" class="flex-shrink-0">👱‍♂️</span>
+                        <span id="account-display-name" class="whitespace-nowrap"></span>
+                    </button>
+
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <div id="main-nav-pill-wrap" class="pill-track hidden md:flex items-center space-x-1 p-1 rounded-full flex-shrink-0 border border-gray-200 dark:border-zinc-800 relative">
+                    <div id="main-nav-bubble" class="sliding-pill-bubble accent-bubble"></div>
+                    <button id="nav-home-pc" data-tab="home" class="pill-btn px-4 py-1.5 rounded-full font-medium text-xs transition relative z-10" onclick="switchTab('home')">Home</button>
+                    <button id="nav-tests-pc" data-tab="tests" class="pill-btn tab-inactive px-4 py-1.5 rounded-full font-medium text-xs transition relative z-10" onclick="switchTab('tests')">Exams</button>
+                    <button id="nav-practice-pc" data-tab="practice" class="pill-btn tab-inactive px-4 py-1.5 rounded-full font-medium text-xs transition relative z-10" onclick="switchTab('practice')">Practice</button>
+                    <button id="nav-bookmarks-pc" data-tab="bookmarks" class="pill-btn tab-inactive px-4 py-1.5 rounded-full font-medium text-xs transition relative z-10" onclick="switchTab('bookmarks')">Bookmarks</button>
+                    <button id="nav-dictionary-pc" data-tab="dictionary" class="pill-btn tab-inactive px-4 py-1.5 rounded-full font-medium text-xs transition relative z-10" onclick="switchTab('dictionary')">Dictionary</button>
+                </div>
+
+                <div class="md:hidden flex-shrink-0">
+                    <select id="mobile-nav-select" onchange="switchTab(this.value)" class="custom-styled-select text-[11px] font-semibold rounded-full px-2 py-1.5 outline-none cursor-pointer max-w-[98px]">
+                        <option value="home">🏠 Home</option>
+                        <option value="tests">📑 Exams</option>
+                        <option value="practice">⚡ Practice</option>
+                        <option value="bookmarks">⭐ Bookmarks</option>
+                        <option value="dictionary">📖 Dict</option>
+                    </select>
+                </div>
+
+                <div id="navbar-exam-timer-pill" onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" title="Наверх к шапке экзамена"
+                     class="hide inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-extrabold tabular-nums profile-tag cursor-pointer shadow-sm transition-all duration-200 flex-shrink-0">
+                    <span>⏱</span>
+                    <span id="navbar-exam-timer-text">140:00</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto w-full px-4 sm:px-6 pt-24 sm:pt-28 relative flex-grow">
+
+        <!-- Main Hub / Start Screen -->
+        <div id="view-home" class="view-panel">
+            <div class="mb-8 sm:mb-10 text-center max-w-2xl mx-auto">
+                <div id="home-badge-el" class="inline-block text-[11px] font-medium px-2.5 py-0.5 rounded-full profile-tag mb-2.5 opacity-80">Welcome back</div>
+                <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">CEnT-S Preparation Hub</h2>
+                <p class="sub-text text-sm sm:text-base">Выбери направление для работы: полноценные симуляции экзамена, тренировка по темам, сохранённые задачи или личный словарь.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 max-w-4xl mx-auto">
+                <div onclick="switchTab('tests')" class="levitating-card rounded-3xl p-7 cursor-pointer transition-all flex flex-col justify-between border group">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl profile-tag flex items-center justify-center text-2xl mb-4 font-bold">📑</div>
+                        <h3 class="text-xl font-bold mb-2">Exams & Simulations</h3>
+                        <p class="text-xs sm:text-sm sub-text leading-relaxed">Full 60-question mock tests with a 140-minute timer and 1500-point scaled score calculation.</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-between text-xs font-bold">
+                        <span id="home-cta-0">Go to exams</span>
+                        <span class="group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                </div>
+
+                <div onclick="switchTab('practice')" class="levitating-card rounded-3xl p-7 cursor-pointer transition-all flex flex-col justify-between border group">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl profile-tag flex items-center justify-center text-2xl mb-4 font-bold">⚡</div>
+                        <h3 class="text-xl font-bold mb-2">Targeted Practice</h3>
+                        <p class="text-xs sm:text-sm sub-text leading-relaxed">Practice individual sections (Reading, Math, Logic, Biology, Chemistry, Physics), shuffle questions, and use Random mode.</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-between text-xs font-bold">
+                        <span id="home-cta-1">Start practice</span>
+                        <span class="group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                </div>
+
+                <div onclick="switchTab('bookmarks')" class="levitating-card rounded-3xl p-7 cursor-pointer transition-all flex flex-col justify-between border group">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl profile-tag flex items-center justify-center text-2xl mb-4 font-bold">⭐</div>
+                        <h3 class="text-xl font-bold mb-2">Saved Bookmarks</h3>
+                        <p class="text-xs sm:text-sm sub-text leading-relaxed">Starred questions organized by subject for reviewing and re-solving.</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-between text-xs font-bold">
+                        <span id="home-cta-2">Open bookmarks</span>
+                        <span class="group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                </div>
+
+                <div onclick="switchTab('dictionary')" class="levitating-card rounded-3xl p-7 cursor-pointer transition-all flex flex-col justify-between border group">
+                    <div>
+                        <div class="w-12 h-12 rounded-2xl profile-tag flex items-center justify-center text-2xl mb-4 font-bold">📖</div>
+                        <h3 class="text-xl font-bold mb-2">My Vocabulary</h3>
+                        <p class="text-xs sm:text-sm sub-text leading-relaxed">Personal dictionary of words and terms saved while reading passages and solving tasks.</p>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-between text-xs font-bold">
+                        <span id="home-cta-3">Open dictionary</span>
+                        <span class="group-hover:translate-x-1 transition-transform">→</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Exams View -->
+        <div id="view-tests" class="view-panel hide space-y-10">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <h2 class="text-2xl sm:text-3xl font-bold">Exams</h2>
+            </div>
+
+            <!-- Official Sample Tests Block -->
+            <div class="space-y-4">
+                <h3 class="text-base sm:text-lg font-bold sub-text">Official Sample Tests</h3>
+                <div id="tests-grid-official" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </div>
+
+            <!-- Generated Tests Block -->
+            <div class="space-y-4">
+                <h3 class="text-base sm:text-lg font-bold sub-text">Generated Tests</h3>
+                <div id="tests-grid-generated" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6"></div>
+            </div>
+        </div>
+
+        <!-- Practice Section -->
+        <div id="view-practice" class="view-panel hide">
+            <div class="mb-6 sm:mb-8">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-2">Targeted Practice</h2>
+                <p class="sub-text text-sm sm:text-base">Select a section to practice or switch between sections in the bar above.</p>
+            </div>
+
+            <div id="practice-hub-screen" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+                <div data-prac-card="0" onclick="loadPractice('Reading', false)" class="levitating-card rounded-3xl p-6 cursor-pointer transition-all flex flex-col justify-between border">
+                    <div>
+                        <div class="inline-block text-xs font-bold px-3 py-1 rounded-full profile-tag mb-3">Section 01</div>
+                        <h3 class="text-lg font-bold mb-1.5">Reading Comprehension</h3>
+                        <p class="text-xs sub-text leading-relaxed">Тексты с разбором деталей, выводов, синонимов и полноэкранным окном чтения.</p>
+                    </div>
+                    <div class="mt-5 pt-3 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-between text-xs font-semibold">
+                        <span class="prac-open-sec-cta">Open section</span>
+                        <span>→</span>
+                    </div>
+                </div>
+
+                <div data-prac-card="1" onclick="loadPractice('Math', false)" class="levitating-card rounded-3xl p-6 cursor-pointer transition-all flex flex-col justify-between border">
+                    <div>
+                        <div class="inline-block text-xs font-bold px-3 py-1 rounded-full profile-tag mb-3">Section 02</div>
+                        <h3 class="text-lg font-bold mb-1.5">Mathematics</h3>
+                        <p class="text-xs sub-text leading-relaxed">Алгебра, функции, геометрия и комбинаторика: задачи в формате CEnT-S с пошаговыми разборами.</p>
+                    </div>
+                    <div class="mt-5 pt-3 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-between text-xs font-semibold">
+                        <span class="prac-open-sec-cta">Open section</span>
+                        <span>→</span>
+                    </div>
+                </div>
+
+                <div data-prac-card="2" onclick="loadPractice('Logic', false)" class="levitating-card rounded-3xl p-6 cursor-pointer transition-all flex flex-col justify-between border">
+                    <div>
+                        <div class="inline-block text-xs font-bold px-3 py-1 rounded-full profile-tag mb-3">Section 03</div>
+                        <h3 class="text-lg font-bold mb-1.5">Reasoning on Texts and Data</h3>
+                        <p class="text-xs sub-text leading-relaxed">Логические условия, доли, проценты, оценки и работа с числовыми данными.</p>
+                    </div>
+                    <div class="mt-5 pt-3 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-between text-xs font-semibold">
+                        <span class="prac-open-sec-cta">Open section</span>
+                        <span>→</span>
+                    </div>
+                </div>
+
+                <div data-prac-card="3" onclick="loadPractice('Biology', false)" class="levitating-card rounded-3xl p-6 cursor-pointer transition-all flex flex-col justify-between border">
+                    <div>
+                        <div class="inline-block text-xs font-bold px-3 py-1 rounded-full profile-tag mb-3">Section 04</div>
+                        <h3 class="text-lg font-bold mb-1.5">Biology</h3>
+                        <p class="text-xs sub-text leading-relaxed">Клетка, метаболизм, генетика, физиология и экология с пошаговыми разборами.</p>
+                    </div>
+                    <div class="mt-5 pt-3 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-between text-xs font-semibold">
+                        <span class="prac-open-sec-cta">Open section</span>
+                        <span>→</span>
+                    </div>
+                </div>
+
+                <div data-prac-card="4" onclick="loadPractice('Chemistry', false)" class="levitating-card rounded-3xl p-6 cursor-pointer transition-all flex flex-col justify-between border">
+                    <div>
+                        <div class="inline-block text-xs font-bold px-3 py-1 rounded-full profile-tag mb-3">Section 05</div>
+                        <h3 class="text-lg font-bold mb-1.5">Chemistry</h3>
+                        <p class="text-xs sub-text leading-relaxed">Стехиометрия, строение молекул, реакции и свойства веществ.</p>
+                    </div>
+                    <div class="mt-5 pt-3 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-between text-xs font-semibold">
+                        <span class="prac-open-sec-cta">Open section</span>
+                        <span>→</span>
+                    </div>
+                </div>
+
+                <div data-prac-card="5" onclick="loadPractice('Physics', false)" class="levitating-card rounded-3xl p-6 cursor-pointer transition-all flex flex-col justify-between border">
+                    <div>
+                        <div class="inline-block text-xs font-bold px-3 py-1 rounded-full profile-tag mb-3">Section 06</div>
+                        <h3 class="text-lg font-bold mb-1.5">Physics</h3>
+                        <p class="text-xs sub-text leading-relaxed">Кинематика, динамика, работа, давление и электрические поля.</p>
+                    </div>
+                    <div class="mt-5 pt-3 border-t border-gray-200 dark:border-zinc-800 flex items-center justify-between text-xs font-semibold">
+                        <span class="prac-open-sec-cta">Open section</span>
+                        <span>→</span>
+                    </div>
+                </div>
+
+                <div data-prac-card="6" onclick="loadPractice('Random', false)" class="levitating-card rounded-3xl p-6 cursor-pointer transition-all flex flex-col justify-between border">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                            <div class="inline-block text-xs font-bold px-3 py-1 rounded-full profile-tag mb-2">Quick Mix</div>
+                            <h3 class="text-lg font-bold mb-1">Random</h3>
+                            <p class="text-xs sub-text leading-relaxed">Одна случайная задача из всего банка за раз с подробным объяснением и переходом к следующей.</p>
+                        </div>
+                        <div class="text-xs font-bold flex items-center gap-2 flex-shrink-0">
+                            <span id="prac-cta-6">Launch Random</span>
+                            <span>→</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div data-prac-card="7" onclick="loadPractice('MyPhotos', false)" class="levitating-card rounded-3xl p-6 cursor-pointer transition-all flex flex-col justify-between border sm:col-span-2">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                            <div class="inline-block text-xs font-bold px-3 py-1 rounded-full profile-tag mb-2">Personal Bank</div>
+                            <h3 class="text-lg font-bold mb-1">Мои фото-задания</h3>
+                            <p class="text-xs sub-text leading-relaxed">Загрузка фотографий своих заданий без обработки и сжатия — с ручным выбором раздела (Reading, Math, Logic &amp; Data, Biology, Chemistry, Physics).</p>
+                        </div>
+                        <div class="text-xs font-bold flex items-center gap-2 flex-shrink-0">
+                            <span id="prac-cta-7">Open photo bank</span>
+                            <span>→</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="practice-active-bar" onclick="if(this.classList.contains('is-strip-folded')){togglePracticeStripFold();}" class="hide card-bg border rounded-2xl p-2.5 mb-6 flex flex-wrap items-center justify-between gap-2 shadow-sm transition-all">
+                <div class="flex flex-wrap items-center gap-1.5 min-w-0 flex-1">
+                    <button type="button" onclick="event.stopPropagation(); exitPracticeToHub();" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer" id="prac-all-sections-btn">← All sections</button>
+                    <button type="button" id="practice-strip-fold-btn" onclick="event.stopPropagation(); togglePracticeStripFold();" title="Свернуть/развернуть список разделов" class="custom-styled-select px-2.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer">− Свернуть</button>
+                    <div id="practice-buttons" onclick="event.stopPropagation();" class="pill-track flex flex-wrap items-center gap-1 p-1.5 rounded-2xl border border-gray-200/80 dark:border-zinc-800 relative transition-all">
+                        <div id="practice-pill-bubble" class="sliding-pill-bubble accent-bubble"></div>
+                        <button type="button" data-cat="Reading" onclick="loadPractice('Reading', false)" class="practice-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Reading</button>
+                        <button type="button" data-cat="Math" onclick="loadPractice('Math', false)" class="practice-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Math</button>
+                        <button type="button" data-cat="Logic" onclick="loadPractice('Logic', false)" class="practice-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Logic & Data</button>
+                        <button type="button" data-cat="Biology" onclick="loadPractice('Biology', false)" class="practice-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Biology</button>
+                        <button type="button" data-cat="Chemistry" onclick="loadPractice('Chemistry', false)" class="practice-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Chemistry</button>
+                        <button type="button" data-cat="Physics" onclick="loadPractice('Physics', false)" class="practice-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Physics</button>
+                        <button type="button" data-cat="Random" onclick="loadPractice('Random', false)" class="practice-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Random</button>
+                        <button type="button" data-cat="MyPhotos" onclick="loadPractice('MyPhotos', false)" class="practice-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">My photos</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section switcher button docked directly above translator button when scrolling down -->
+            <div id="practice-floating-switcher" class="hide fixed bottom-[102px] right-6 z-40">
+                <div id="practice-floating-menu" class="hide mb-2.5 card-bg border rounded-2xl shadow-2xl p-2 w-56 max-h-[65vh] overflow-y-auto space-y-1">
+                    <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider sub-text">Разделы практики</div>
+                    <button type="button" onclick="loadPractice('Reading', false); closePracticeFloatingMenu();" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:opacity-85 transition cursor-pointer">Reading</button>
+                    <button type="button" onclick="loadPractice('Math', false); closePracticeFloatingMenu();" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:opacity-85 transition cursor-pointer">Math</button>
+                    <button type="button" onclick="loadPractice('Logic', false); closePracticeFloatingMenu();" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:opacity-85 transition cursor-pointer">Logic &amp; Data</button>
+                    <button type="button" onclick="loadPractice('Biology', false); closePracticeFloatingMenu();" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:opacity-85 transition cursor-pointer">Biology</button>
+                    <button type="button" onclick="loadPractice('Chemistry', false); closePracticeFloatingMenu();" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:opacity-85 transition cursor-pointer">Chemistry</button>
+                    <button type="button" onclick="loadPractice('Physics', false); closePracticeFloatingMenu();" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:opacity-85 transition cursor-pointer">Physics</button>
+                    <button type="button" onclick="loadPractice('Random', false); closePracticeFloatingMenu();" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:opacity-85 transition cursor-pointer">Random</button>
+                    <button type="button" onclick="openPracticePhotoBlock(); closePracticeFloatingMenu();" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:opacity-85 transition cursor-pointer">My photos</button>
+                    <div class="my-1 border-t border-gray-200 dark:border-zinc-800"></div>
+                    <div class="px-3 py-1 text-[10px] font-bold uppercase tracking-wider sub-text">Разделы сайта</div>
+                    <button type="button" onclick="switchTab('home'); closePracticeFloatingMenu();" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:opacity-85 transition cursor-pointer">Home</button>
+                    <button type="button" onclick="switchTab('tests'); closePracticeFloatingMenu();" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:opacity-85 transition cursor-pointer">Exams</button>
+                    <button type="button" onclick="switchTab('bookmarks'); closePracticeFloatingMenu();" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:opacity-85 transition cursor-pointer">Bookmarks</button>
+                    <button type="button" onclick="switchTab('dictionary'); closePracticeFloatingMenu();" class="w-full text-left px-3 py-2 rounded-xl text-xs font-bold hover:opacity-85 transition cursor-pointer">Dictionary</button>
+                </div>
+                <button type="button" id="practice-floating-burger-btn" onclick="togglePracticeFloatingMenu()" aria-label="Переключение разделов" title="Разделы практики" class="profile-accent-btn w-12 h-12 rounded-full shadow-xl flex items-center justify-center gap-1 cursor-pointer mx-auto">
+                    <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
+                </button>
+            </div>
+
+            <div id="practice-header-bar" class="mb-6 flex flex-wrap items-center justify-between gap-3 hide">
+                <div id="practice-title-info" class="text-lg font-bold"></div>
+                <div class="flex items-center gap-2">
+                    <label id="practice-quick-upload-wrap" class="custom-styled-select px-3.5 py-2 rounded-full text-xs font-semibold transition cursor-pointer inline-flex items-center gap-1.5 hide">
+                        <span class="add-file-label">Add file</span>
+                        <input type="file" id="practice-section-file-input" accept="image/*" multiple onchange="handleCurrentSectionPhotoUpload(event)" class="hidden">
+                    </label>
+                    <button type="button" id="practice-regen-btn" onclick="regenerateCurrentPractice()" class="text-xs custom-styled-select hover:opacity-80 px-4 py-2 rounded-full font-semibold transition hide cursor-pointer">↻ Shuffle questions</button>
+                </div>
+            </div>
+
+            <div id="practice-scrubber-bar" class="hide card-bg border rounded-2xl px-4 py-3 mb-5 shadow-sm space-y-2.5">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
+                    <span class="sub-text" id="jump-task-label-el">Jump to task</span>
+                    <div class="flex items-center gap-2">
+                        <div class="inline-flex items-center gap-1 box-content-bg border rounded-xl px-2.5 py-1">
+                            <input type="text" inputmode="numeric" pattern="[0-9]*" id="practice-jump-number" value="1" aria-label="Номер задания" onkeydown="if(event.key==='Enter'){event.preventDefault();jumpToPracticeTaskNumber();}" class="bg-transparent w-9 text-xs font-extrabold text-center outline-none">
+                            <span id="practice-scrubber-label" class="sub-text font-semibold">/ 1</span>
+                        </div>
+                        <button type="button" onclick="jumpToPracticeTaskNumber()" class="profile-accent-btn px-3.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer" id="jump-go-btn-el">Go</button>
+                    </div>
+                </div>
+                <input type="range" id="practice-task-slider" min="1" max="1" value="1" oninput="scrubToPracticeTask(this.value)" onchange="scrubToPracticeTask(this.value)" class="task-scrubber-slider w-full cursor-pointer">
+            </div>
+
+            <div id="practice-container" class="space-y-3.5 hide"></div>
+
+            <!-- Compact Minimalist Photo Tasks Block inside Practice -->
+            <div id="practice-photo-block" class="hide space-y-4 smooth-stream-enter">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5">
+                        <button type="button" onclick="exitPracticeToHub()" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer">← Back</button>
+                        <h3 class="text-lg sm:text-xl font-bold">Photo tasks</h3>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" onclick="moveAllPhotosToDelete()" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer">Move all photos to trash</button>
+                        <button type="button" onclick="clearAllPhotosInDelete()" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer">Empty trash</button>
+                    </div>
+                </div>
+
+                <!-- Minimalist Upload Box: Select Section + Add Photo (No Caption Input) -->
+                <div class="card-bg border rounded-2xl px-3.5 py-2.5 shadow-sm flex flex-wrap items-center gap-2">
+                    <select id="photo-task-section-select" class="custom-styled-select rounded-xl px-3 py-1.5 text-xs font-semibold outline-none cursor-pointer">
+                        <option value="Auto" selected>Авто (по тексту)</option>
+                        <option value="Reading">Reading</option>
+                        <option value="Math">Math</option>
+                        <option value="Logic">Logic &amp; Data</option>
+                        <option value="Biology">Biology</option>
+                        <option value="Chemistry">Chemistry</option>
+                        <option value="Physics">Physics</option>
+                        <option value="Trash">Trash</option>
+                    </select>
+                    <label class="profile-accent-btn px-3.5 py-1.5 rounded-full text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5 flex-shrink-0">
+                        <span class="add-file-label">Add file</span>
+                        <input type="file" id="photo-task-file-input" accept="image/*" multiple onchange="handlePhotoTaskUpload(event)" class="hidden">
+                    </label>
+                    <button type="button" onclick="autoSortExistingPhotosByOcr()" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer">Auto-detect</button>
+                    <span id="photo-task-status" class="text-[11px] sub-text"></span>
+                </div>
+
+                <!-- Subsection Filter Pills for Photo Block -->
+                <div class="card-bg border rounded-2xl p-2 flex flex-wrap items-center justify-between gap-2 shadow-sm">
+                    <div id="photo-filter-buttons" class="pill-track flex flex-wrap items-center gap-1 p-1 rounded-full border border-gray-200/80 dark:border-zinc-800 relative">
+                        <div id="photo-pill-bubble" class="sliding-pill-bubble accent-bubble"></div>
+                        <button type="button" data-photo-cat="Reading" onclick="filterPhotoTasks('Reading')" class="photo-cat-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Reading</button>
+                        <button type="button" data-photo-cat="Math" onclick="filterPhotoTasks('Math')" class="photo-cat-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Math</button>
+                        <button type="button" data-photo-cat="Logic" onclick="filterPhotoTasks('Logic')" class="photo-cat-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Logic &amp; Data</button>
+                        <button type="button" data-photo-cat="Biology" onclick="filterPhotoTasks('Biology')" class="photo-cat-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Biology</button>
+                        <button type="button" data-photo-cat="Chemistry" onclick="filterPhotoTasks('Chemistry')" class="photo-cat-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Chemistry</button>
+                        <button type="button" data-photo-cat="Physics" onclick="filterPhotoTasks('Physics')" class="photo-cat-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Physics</button>
+                        <button type="button" data-photo-cat="Trash" onclick="filterPhotoTasks('Trash')" class="photo-cat-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Trash</button>
+                    </div>
+                </div>
+
+                <!-- Uploaded Photo Tasks Container -->
+                <div id="photo-tasks-container" class="space-y-6"></div>
+            </div>
+
+        </div>
+
+        <!-- Bookmarks Section -->
+        <div id="view-bookmarks" class="view-panel hide">
+            <div class="mb-6 sm:mb-8">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-2">Saved Questions <span class="text-amber-400">★</span></h2>
+                <p class="sub-text text-sm sm:text-base">Review your bookmarked tasks grouped by subject.</p>
+            </div>
+
+            <!-- Bookmarks Subsection Bubble Filter Bar -->
+            <div id="bookmarks-filter-bar" class="card-bg border rounded-2xl p-2.5 mb-6 flex flex-wrap items-center justify-between gap-2 shadow-sm">
+                <div id="bookmarks-buttons" class="pill-track flex flex-wrap items-center gap-1 p-1.5 rounded-2xl border border-gray-200/80 dark:border-zinc-800 relative">
+                    <div id="bookmarks-pill-bubble" class="sliding-pill-bubble accent-bubble"></div>
+                    <button type="button" data-bm-cat="All" onclick="filterBookmarksByCategory('All')" class="bm-cat-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">All</button>
+                    <button type="button" data-bm-cat="Reading" onclick="filterBookmarksByCategory('Reading')" class="bm-cat-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Reading</button>
+                    <button type="button" data-bm-cat="Math" onclick="filterBookmarksByCategory('Math')" class="bm-cat-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Math</button>
+                    <button type="button" data-bm-cat="Logic" onclick="filterBookmarksByCategory('Logic')" class="bm-cat-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Logic & Data</button>
+                    <button type="button" data-bm-cat="Biology" onclick="filterBookmarksByCategory('Biology')" class="bm-cat-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Biology</button>
+                    <button type="button" data-bm-cat="Chemistry" onclick="filterBookmarksByCategory('Chemistry')" class="bm-cat-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Chemistry</button>
+                    <button type="button" data-bm-cat="Physics" onclick="filterBookmarksByCategory('Physics')" class="bm-cat-btn pill-btn px-3.5 py-1.5 rounded-full font-semibold text-xs transition cursor-pointer relative z-10">Physics</button>
+                </div>
+            </div>
+
+            <div id="bookmarks-container" class="space-y-6"></div>
+        </div>
+
+
+        <!-- Standalone My Photos View (Opened from Exams -> My Photos) -->
+        <div id="view-my-photos" class="view-panel hide space-y-5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5">
+                    <button type="button" onclick="switchTab('tests')" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer">← Exams</button>
+                    <h2 class="text-2xl sm:text-3xl font-bold">My Photos</h2>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" onclick="moveAllPhotosToDelete()" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer">Move all photos to trash</button>
+                    <button type="button" onclick="clearAllPhotosInDelete()" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer">Empty trash</button>
+                </div>
+            </div>
+
+            <div class="card-bg border rounded-2xl px-3.5 py-2.5 shadow-sm flex flex-wrap items-center gap-2">
+                <select id="standalone-photo-section-select" class="custom-styled-select rounded-xl px-3 py-1.5 text-xs font-semibold outline-none cursor-pointer">
+                    <option value="Auto" selected>Авто (по тексту)</option>
+                    <option value="Reading">Reading</option>
+                    <option value="Math">Math</option>
+                    <option value="Logic">Logic &amp; Data</option>
+                    <option value="Biology">Biology</option>
+                    <option value="Chemistry">Chemistry</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Trash">Trash</option>
+                </select>
+                <label class="profile-accent-btn px-3.5 py-1.5 rounded-full text-xs font-semibold cursor-pointer inline-flex items-center gap-1.5 flex-shrink-0">
+                    <span class="add-file-label">Add file</span>
+                    <input type="file" id="standalone-photo-file-input" accept="image/*" multiple onchange="handleStandalonePhotoUpload(event)" class="hidden">
+                </label>
+                <button type="button" onclick="autoSortExistingPhotosByOcr()" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer">Auto-detect</button>
+                <span id="standalone-photo-task-status" class="text-[11px] sub-text"></span>
+            </div>
+
+            <div id="standalone-photo-tasks-container" class="space-y-6"></div>
+        </div>
+
+        <!-- Dictionary Section -->
+        <div id="view-dictionary" class="view-panel hide space-y-5">
+            <div class="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-bold mb-1.5">My Vocabulary 📖</h2>
+                    <p class="sub-text text-xs sm:text-sm">Study vocabulary cards or browse the word list.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-1.5 p-1 rounded-full card-bg border">
+                        <button type="button" id="dict-mode-cards-btn" onclick="setDictionaryViewMode('cards')" class="profile-accent-btn px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer transition">Cards</button>
+                        <button type="button" id="dict-mode-list-btn" onclick="setDictionaryViewMode('list')" class="custom-styled-select px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer transition">List</button>
+                        <button type="button" id="dict-mode-game-btn" onclick="setDictionaryViewMode('game')" class="custom-styled-select px-4 py-1.5 rounded-full text-xs font-bold cursor-pointer transition">🎮 Игра</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-bg border rounded-2xl p-2.5 flex flex-wrap items-center justify-between gap-2 shadow-sm relative z-10">
+                <div class="flex flex-wrap items-center gap-1.5">
+                    <button type="button" data-dict-src="mine" onclick="setDictionarySourceFilter('mine')" class="dict-src-btn custom-styled-select px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer transition">My dictionary</button>
+                    <button type="button" data-dict-src="accent" onclick="setDictionarySourceFilter('accent')" class="dict-src-btn custom-styled-select px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer transition">Accent vocabulary</button>
+                    <button type="button" data-dict-src="both" onclick="setDictionarySourceFilter('both')" class="dict-src-btn profile-accent-btn px-3.5 py-1.5 rounded-full text-xs font-bold cursor-pointer transition">Combined (Both)</button>
+                </div>
+                <div id="dict-source-summary" class="text-xs font-semibold sub-text px-2"></div>
+            </div>
+
+            <!-- Flashcards Study Stage -->
+            <div id="dictionary-flashcards-stage" class="space-y-4"></div>
+
+            <!-- Interactive 3-Lane Vocabulary Runner Game Stage -->
+            <div id="dictionary-game-stage" class="hide space-y-4"></div>
+
+            <!-- Word List Grid -->
+            <div id="dictionary-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 hide"></div>
+        </div>
+
+        <!-- Active Exam UI -->
+        <div id="view-active-exam" class="view-panel hide">
+            <div class="flex justify-between items-end mb-6 sm:mb-8 border-b border-gray-200 dark:border-zinc-800 pb-4">
+                <div>
+                    <button onclick="quitExam()" class="sub-text hover:text-black dark:hover:text-white mb-2 sm:mb-4 text-sm font-medium flex items-center">← Exit Exam</button>
+                    <h2 class="text-2xl sm:text-3xl font-bold" id="exam-title">Generated Test</h2>
+                </div>
+                <div id="exam-top-timer-block" class="text-right">
+                    <div class="text-xs sm:text-sm sub-text font-medium">Time Remaining</div>
+                    <div id="timer" class="text-2xl sm:text-3xl font-bold tabular-nums">140:00</div>
+                </div>
+            </div>
+            <div id="exam-container" class="space-y-8"></div>
+
+            <div class="mt-12 card-bg p-6 sm:p-8 rounded-3xl shadow-sm border text-center">
+                <button onclick="submitExam()" class="bg-gray-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-8 sm:px-10 py-3.5 sm:py-4 rounded-full font-bold text-base sm:text-lg shadow-md transition hover:opacity-90">Submit & Score Exam</button>
+            </div>
+        </div>
+
+        <!-- Exam Results Dashboard -->
+        <div id="view-exam-results-screen" class="view-panel hide max-w-2xl mx-auto card-bg p-7 sm:p-10 rounded-3xl shadow-sm border text-center mt-6">
+            <div class="w-16 h-16 profile-tag rounded-full flex items-center justify-center mx-auto mb-4 text-2xl font-bold">🎯</div>
+            <h2 class="text-2xl sm:text-3xl font-bold mb-1">Exam Results</h2>
+            <div class="text-[11px] font-bold uppercase tracking-wider sub-text mb-1">CISIA Normalised Scale (1500)</div>
+            <div id="res-score-box" class="text-4xl sm:text-5xl font-black my-3">0 / 1500</div>
+            <div id="res-zone-box" class="text-base font-semibold mb-2"></div>
+            <div id="res-time-box" class="text-xs sub-text mb-5"></div>
+
+            <!-- CISIA Raw + Difficulty Normalisation Breakdown -->
+            <div id="res-cisia-breakdown" class="grid grid-cols-3 gap-2.5 text-left mb-4"></div>
+            <div id="res-sections-breakdown" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-left mb-6"></div>
+
+            <div id="res-quote-box" class="text-sm italic sub-text box-content-bg p-4 rounded-2xl mb-8 border"></div>
+
+            <div class="flex flex-wrap justify-center gap-3">
+                <button onclick="switchTab('home')" class="bg-gray-900 dark:bg-zinc-100 text-white dark:text-zinc-900 px-6 py-3 rounded-full font-bold text-sm transition hover:opacity-90">Home Menu</button>
+                <button onclick="startGeneratedTest(activeGeneratedTestIndex)" class="bg-amber-300 text-amber-900 px-6 py-3 rounded-full font-bold text-sm transition hover:bg-amber-400">↻ Retake test</button>
+                <button onclick="showErrorsMode()" class="custom-styled-select px-6 py-3 rounded-full font-bold text-sm transition ">View explanations</button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Floating Dictionary Translator Widget -->
+    <div id="dict-widget" class="fixed bottom-4 right-4 z-50 card-bg border shadow-2xl rounded-3xl w-[360px] sm:w-[430px] max-w-[calc(100vw-24px)] dict-closed">
+        <div class="bg-gray-900 dark:bg-zinc-800 text-white px-5 py-3.5 rounded-t-3xl flex justify-between items-center cursor-pointer" onclick="toggleWidget()">
+            <span class="font-bold text-sm sm:text-base">Translator & Dict 📖</span>
+            <span id="widget-arrow" class="text-xs opacity-80">▼</span>
+        </div>
+        <div class="p-4 sm:p-5 space-y-3.5">
+            <div class="relative">
+                <textarea id="widget-input" rows="3" placeholder="Введите слово или выделите любой фрагмент текста..." oninput="syncTranslatorClearButtons()" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();translateWidget();}" class="w-full input-bg border rounded-2xl pl-3.5 pr-9 py-2.5 text-sm leading-relaxed outline-none transition resize-y min-h-[78px] max-h-[190px]"></textarea>
+                <button type="button" id="widget-clear-input-btn" onclick="clearTranslatorInputField()" title="Очистить поле ввода" class="translator-thin-clear hide" aria-label="Очистить ввод">✕</button>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="translateWidget()" class="flex-1 widget-btn font-bold py-2.5 rounded-xl text-sm transition cursor-pointer">Translate</button>
+                <button type="button" onclick="clearTranslatorAll()" title="Очистить всё" class="custom-styled-select px-3.5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer">Очистить</button>
+            </div>
+            <div id="widget-result-wrap" class="relative box-content-bg border rounded-2xl pl-3.5 pr-9 py-3 min-h-[54px] max-h-[190px] overflow-y-auto">
+                <div id="widget-result" class="text-sm font-medium accent-tone-text leading-relaxed whitespace-pre-wrap break-words"></div>
+                <button type="button" id="widget-clear-result-btn" onclick="clearTranslatorResultField()" title="Очистить ответ" class="translator-thin-clear hide" aria-label="Очистить ответ">✕</button>
+            </div>
+            <button id="widget-save-btn" onclick="saveWidgetWord()" class="w-full widget-btn font-bold py-2.5 rounded-xl text-sm transition hide cursor-pointer">Save to Dictionary</button>
+        </div>
+    </div>
+
+    <button id="dict-open-btn" onclick="toggleWidget()" class="fixed bottom-6 right-6 z-40 floating-btn p-5 rounded-full hover:scale-105 transition text-2xl flex items-center justify-center"  title="Open dictionary">📖</button>
+
+    <!-- Data files -->
+    <script src="db_reading.js"></script>
+    <script src="db_math.js"></script>
+    <script src="db_logic.js"></script>
+    <script src="db_biology.js"></script>
+    <script src="db_chemistry.js"></script>
+    <script src="db_physics.js"></script>
+    <script src="db_official_test.js"></script>
+    <script src="db_generated_test.js"></script>
+    <script src="db_vocabulary.js"></script>
+    <!-- Application logic -->
+    <script src="app.js"></script>
+
+    <!-- Accounts Modal (Simple Two-Choice Switcher: Дима & Доминика) -->
+    <div id="account-auth-modal" class="hide fixed inset-0 z-50 flex items-center justify-center p-4" style="background-color: rgba(15, 23, 42, 0.55); backdrop-filter: blur(10px);">
+        <div class="card-bg border rounded-3xl shadow-2xl w-full max-w-sm p-6 sm:p-7 space-y-5 relative">
+            <div class="flex items-center justify-between gap-2">
+                <div>
+                    <div class="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full profile-tag mb-1">Accounts</div>
+                    <h3 id="auth-modal-title" class="text-xl font-extrabold">Switch account</h3>
+                </div>
+                <button type="button" id="auth-close-btn" onclick="closeAccountModal()" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer">✕</button>
+            </div>
+
+            <div class="grid grid-cols-1 gap-3">
+                <button type="button" onclick="selectFixedProfileAccount('dima')" class="custom-styled-select rounded-2xl px-4 py-3.5 text-sm font-bold flex items-center justify-between cursor-pointer hover:opacity-90 transition">
+                    <span class="flex items-center gap-2.5">
+                        <span class="text-xl">👱‍♂️</span>
+                        <span>Дима</span>
+                    </span>
+                    <span>→</span>
+                </button>
+                <button type="button" onclick="selectFixedProfileAccount('dominika')" class="custom-styled-select rounded-2xl px-4 py-3.5 text-sm font-bold flex items-center justify-between cursor-pointer hover:opacity-90 transition">
+                    <span class="flex items-center gap-2.5">
+                        <span class="text-xl">👱‍♀️</span>
+                        <span>Доминика</span>
+                    </span>
+                    <span>→</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accent Color Picker Modal (Shown after registration & adjustable anytime) -->
+    <div id="accent-color-modal" class="hide fixed inset-0 z-50 flex items-center justify-center p-4" style="background-color: rgba(15, 23, 42, 0.58); backdrop-filter: blur(10px);">
+        <div class="card-bg border rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-7 space-y-5 relative">
+            <div class="flex items-center justify-between gap-2">
+                <div>
+                    <div class="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full profile-tag mb-1">Accent Color</div>
+                    <h3 class="text-xl font-extrabold">Choose accent color</h3>
+                </div>
+                <button type="button" onclick="closeAccentPickerModal()" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer">✕</button>
+            </div>
+
+            <!-- Preset Swatches: Blue, Soft Pink, Teal/Crimson-Teal slot, Lime Green, Purple, Dark Blue, Yellow + "Другой" -->
+            <div class="grid grid-cols-4 gap-2.5">
+                <button type="button" onclick="selectPresetAccentHex('#38bdf8', 'Голубой')" class="custom-styled-select rounded-2xl p-2.5 flex flex-col items-center gap-1.5 cursor-pointer hover:opacity-90 transition">
+                    <span class="w-7 h-7 rounded-full border border-white/40 shadow-sm" style="background-color:#38bdf8;"></span>
+                    <span class="text-[11px] font-bold">Голубой</span>
+                </button>
+                <button type="button" onclick="selectPresetAccentHex('#f472b6', 'Розовый')" class="custom-styled-select rounded-2xl p-2.5 flex flex-col items-center gap-1.5 cursor-pointer hover:opacity-90 transition">
+                    <span class="w-7 h-7 rounded-full border border-white/40 shadow-sm" style="background-color:#f472b6;"></span>
+                    <span class="text-[11px] font-bold">Розовый</span>
+                </button>
+                <button type="button" onclick="selectPresetAccentHex('#2dd4bf', 'Бирюзовый')" class="custom-styled-select rounded-2xl p-2.5 flex flex-col items-center gap-1.5 cursor-pointer hover:opacity-90 transition">
+                    <span class="w-7 h-7 rounded-full border border-white/40 shadow-sm" style="background-color:#2dd4bf;"></span>
+                    <span class="text-[11px] font-bold">Бирюзовый</span>
+                </button>
+                <button type="button" onclick="selectPresetAccentHex('#84cc16', 'Салатовый')" class="custom-styled-select rounded-2xl p-2.5 flex flex-col items-center gap-1.5 cursor-pointer hover:opacity-90 transition">
+                    <span class="w-7 h-7 rounded-full border border-white/40 shadow-sm" style="background-color:#84cc16;"></span>
+                    <span class="text-[11px] font-bold">Салатовый</span>
+                </button>
+                <button type="button" onclick="selectPresetAccentHex('#a855f7', 'Фиолетовый')" class="custom-styled-select rounded-2xl p-2.5 flex flex-col items-center gap-1.5 cursor-pointer hover:opacity-90 transition">
+                    <span class="w-7 h-7 rounded-full border border-white/40 shadow-sm" style="background-color:#a855f7;"></span>
+                    <span class="text-[11px] font-bold">Фиолетовый</span>
+                </button>
+                <button type="button" onclick="selectPresetAccentHex('#1d4ed8', 'Тёмно-синий')" class="custom-styled-select rounded-2xl p-2.5 flex flex-col items-center gap-1.5 cursor-pointer hover:opacity-90 transition">
+                    <span class="w-7 h-7 rounded-full border border-white/40 shadow-sm" style="background-color:#1d4ed8;"></span>
+                    <span class="text-[11px] font-bold">Тёмно-синий</span>
+                </button>
+                <button type="button" onclick="selectPresetAccentHex('#eab308', 'Жёлтый')" class="custom-styled-select rounded-2xl p-2.5 flex flex-col items-center gap-1.5 cursor-pointer hover:opacity-90 transition">
+                    <span class="w-7 h-7 rounded-full border border-white/40 shadow-sm" style="background-color:#eab308;"></span>
+                    <span class="text-[11px] font-bold">Жёлтый</span>
+                </button>
+                <button type="button" onclick="toggleCustomColorWheelPanel()" class="custom-styled-select rounded-2xl p-2.5 flex flex-col items-center justify-center gap-1.5 cursor-pointer hover:opacity-90 transition border-dashed">
+                    <span class="text-base font-extrabold">🎨</span>
+                    <span class="text-[11px] font-bold">Другой</span>
+                </button>
+            </div>
+
+            <!-- Circular Hue Wheel + Saturation & Lightness Sliders ("Другой") -->
+            <div id="custom-color-wheel-panel" class="hide box-content-bg border rounded-2xl p-4 space-y-4">
+                <div class="flex flex-col items-center gap-2">
+                    <div id="accent-hue-wheel" onpointerdown="onHueWheelPointerDown(event)" class="accent-hue-wheel relative rounded-full cursor-crosshair select-none touch-none">
+                        <div id="accent-hue-indicator" class="accent-hue-indicator"></div>
+                    </div>
+                    <div class="text-[11px] sub-text">Кликни или потяни по кругу, чтобы выбрать оттенок</div>
+                </div>
+
+                <div class="space-y-2.5">
+                    <div>
+                        <div class="flex justify-between text-[11px] font-bold mb-1">
+                            <span class="sub-text">Насыщенность</span>
+                            <span id="accent-sat-value">85%</span>
+                        </div>
+                        <input type="range" id="accent-sat-slider" min="0" max="100" value="85" oninput="updateCustomColorFromSliders()" class="task-scrubber-slider w-full cursor-pointer">
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[11px] font-bold mb-1">
+                            <span class="sub-text">Яркость (тёмный ↔ светлый)</span>
+                            <span id="accent-light-value">55%</span>
+                        </div>
+                        <input type="range" id="accent-light-slider" min="15" max="85" value="55" oninput="updateCustomColorFromSliders()" class="task-scrubber-slider w-full cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-3 pt-1">
+                <div class="flex items-center gap-2 text-xs font-bold">
+                    <span id="accent-preview-dot" class="w-5 h-5 rounded-full border border-white/40 inline-block" style="background-color: var(--accent-color);"></span>
+                    <span id="accent-preview-hex" class="sub-text">Текущий цвет</span>
+                </div>
+                <button type="button" onclick="confirmAccentChoice()" class="profile-accent-btn px-5 py-2 rounded-full text-xs font-bold cursor-pointer">Done</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Account Profile & Statistics Modal -->
+    <div id="account-profile-modal" class="hide fixed inset-0 z-50 flex items-center justify-center p-4" style="background-color: rgba(15, 23, 42, 0.58); backdrop-filter: blur(10px);">
+        <div id="account-profile-dialog-card" class="card-bg border-2 rounded-3xl shadow-2xl w-full max-w-lg p-6 sm:p-7 space-y-5 relative max-h-[90vh] overflow-y-auto" style="border-color: var(--accent-color); box-shadow: 0 0 0 1px var(--accent-color), 0 20px 50px -10px var(--accent-soft);">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-11 h-11 rounded-2xl profile-tag flex items-center justify-center text-xl font-bold flex-shrink-0" id="profile-modal-emoji">👱‍♂️</div>
+                    <div class="min-w-0">
+                        <h3 id="profile-modal-title" class="text-lg sm:text-xl font-extrabold truncate">Профиль</h3>
+                        <div id="profile-modal-login" class="text-xs sub-text truncate"></div>
+                    </div>
+                </div>
+                <button type="button" onclick="closeAccountProfileModal()" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer flex-shrink-0">✕</button>
+            </div>
+
+            <!-- Summary Blocks -->
+            <div class="grid grid-cols-3 gap-2.5">
+                <div class="box-content-bg border rounded-2xl p-3 text-center">
+                    <div class="text-[11px] sub-text font-semibold mb-1">Total solved</div>
+                    <div id="stat-total-solved" class="text-lg sm:text-xl font-extrabold">0</div>
+                </div>
+                <div class="box-content-bg border rounded-2xl p-3 text-center">
+                    <div class="text-[11px] sub-text font-semibold mb-1">Accuracy</div>
+                    <div id="stat-accuracy-pct" class="text-lg sm:text-xl font-extrabold">0%</div>
+                </div>
+                <div class="box-content-bg border rounded-2xl p-3 text-center">
+                    <div class="text-[11px] sub-text font-semibold mb-1">Score outlook</div>
+                    <div id="stat-probability-pct" class="text-lg sm:text-xl font-extrabold">0%</div>
+                </div>
+            </div>
+
+            <!-- Per-Section Breakdown Blocks -->
+            <div class="space-y-2.5">
+                <div class="text-xs font-bold sub-text">Stats by section</div>
+                <div id="profile-sections-stats-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+            </div>
+
+            <!-- Theme & Language Settings inside Account Modal -->
+            <div class="box-content-bg border rounded-2xl p-4 space-y-3">
+                <div class="flex items-center justify-between gap-2">
+                    <div>
+                        <div id="profile-theme-label" class="text-xs font-bold">Theme mode</div>
+                        <div id="profile-theme-sub" class="text-[11px] sub-text">Light / Dark</div>
+                    </div>
+                    <button type="button" id="profile-theme-toggle-btn" onclick="toggleTheme()" class="custom-styled-select px-4 py-2 rounded-full text-xs font-bold cursor-pointer inline-flex items-center gap-1.5">
+                        <span id="profile-theme-icon">🌙</span>
+                        <span id="profile-theme-btn-text">Dark</span>
+                    </button>
+                </div>
+
+                <div class="pt-2 border-t border-gray-200/70 dark:border-zinc-700/70 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <div id="profile-lang-label" class="text-xs font-bold">Interface language</div>
+                        <div id="profile-lang-sub" class="text-[11px] sub-text">Questions stay in English</div>
+                    </div>
+                    <div id="profile-lang-buttons" class="flex items-center gap-1.5">
+                        <button type="button" data-ui-lang="ru" onclick="setSiteLanguage('ru')" class="ui-lang-btn px-3 py-1.5 rounded-full text-xs font-extrabold cursor-pointer transition">RU</button>
+                        <button type="button" data-ui-lang="en" onclick="setSiteLanguage('en')" class="ui-lang-btn px-3 py-1.5 rounded-full text-xs font-extrabold cursor-pointer transition">EN</button>
+                        <button type="button" data-ui-lang="it" onclick="setSiteLanguage('it')" class="ui-lang-btn px-3 py-1.5 rounded-full text-xs font-extrabold cursor-pointer transition">IT</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Actions: Live Charts, Accent Color, Switch/Manage Accounts -->
+            <div class="pt-3 border-t border-gray-200 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" id="profile-charts-open-btn" onclick="closeAccountProfileModal(); openLiveChartsModal('All');" class="profile-accent-btn px-4 py-2 rounded-full text-xs font-bold cursor-pointer">📈 Графики</button>
+                    <button type="button" id="profile-accent-open-btn" onclick="closeAccountProfileModal(); openAccentPickerModal();" class="custom-styled-select px-3.5 py-2 rounded-full text-xs font-bold cursor-pointer">🎨 Accent color</button>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button type="button" id="profile-switch-acc-btn" onclick="closeAccountProfileModal(); openAccountModal(false);" class="custom-styled-select px-3.5 py-2 rounded-full text-xs font-bold cursor-pointer">Switch / Accounts</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Time-Projection Statistics & Per-Subject Charts Modal -->
+    <div id="live-charts-modal" class="hide fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5" style="background-color: rgba(15, 23, 42, 0.62); backdrop-filter: blur(12px);">
+        <div id="live-charts-dialog-card" class="card-bg border-2 rounded-3xl shadow-2xl w-full max-w-3xl p-5 sm:p-7 space-y-5 relative max-h-[92vh] overflow-y-auto" style="border-color: var(--accent-color); box-shadow: 0 0 0 1px var(--accent-color), 0 20px 50px -10px var(--accent-soft);">
+            <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <button type="button" onclick="closeLiveChartsModal(); openAccountProfileModal();" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer flex-shrink-0">← Профиль</button>
+                    <div class="min-w-0">
+                        <div class="inline-flex items-center gap-1.5 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full profile-tag mb-0.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse inline-block"></span>
+                            <span>LIVE • Проекция по времени</span>
+                        </div>
+                        <h3 id="live-charts-modal-title" class="text-lg sm:text-xl font-extrabold truncate">Общая статистика по дням</h3>
+                    </div>
+                </div>
+                <button type="button" onclick="closeLiveChartsModal()" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer flex-shrink-0">✕</button>
+            </div>
+
+            <!-- Live Today KPI Strip -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                <div class="box-content-bg border rounded-2xl p-3">
+                    <div class="text-[11px] sub-text font-semibold">Решено сегодня</div>
+                    <div id="chart-kpi-today-solved" class="text-lg sm:text-xl font-extrabold mt-0.5">0</div>
+                </div>
+                <div class="box-content-bg border rounded-2xl p-3">
+                    <div class="text-[11px] sub-text font-semibold">Точность сегодня</div>
+                    <div id="chart-kpi-today-acc" class="text-lg sm:text-xl font-extrabold mt-0.5">0%</div>
+                </div>
+                <div class="box-content-bg border rounded-2xl p-3">
+                    <div class="text-[11px] sub-text font-semibold">Всего решено</div>
+                    <div id="chart-kpi-all-solved" class="text-lg sm:text-xl font-extrabold mt-0.5">0</div>
+                </div>
+                <div class="box-content-bg border rounded-2xl p-3">
+                    <div class="text-[11px] sub-text font-semibold">Средний % по всем</div>
+                    <div id="chart-kpi-all-acc" class="text-lg sm:text-xl font-extrabold mt-0.5">0%</div>
+                </div>
+            </div>
+
+            <!-- Thin-Line Time Projection Chart Container -->
+            <div class="box-content-bg border rounded-2xl p-4 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div class="flex flex-wrap items-center gap-4 font-bold">
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="w-4 h-[2px] inline-block rounded-full" style="background-color: var(--accent-color);"></span>
+                            <span>Решено заданий за день</span>
+                        </span>
+                        <span class="inline-flex items-center gap-1.5">
+                            <span class="w-4 h-[2px] inline-block rounded-full " style="background-color: var(--accent-companion, var(--accent-color));"></span>
+                            <span>% правильных (в среднем по всем)</span>
+                        </span>
+                    </div>
+                    <span id="live-chart-hover-readout" class="text-[11px] font-semibold sub-text">Наведи на точку дня для деталей</span>
+                </div>
+
+                <div id="live-chart-svg-wrap" class="w-full overflow-x-auto"></div>
+            </div>
+
+            <!-- Per-Subject Quick Open Cards -->
+            <div class="space-y-2">
+                <div class="text-xs font-bold sub-text">Отдельные графики по предметам (нажми, чтобы открыть)</div>
+                <div id="live-chart-subject-cards" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Photo Upload Modal with Drag & Drop + Target Section Selector -->
+    <div id="photo-upload-modal" class="hide fixed inset-0 z-50 flex items-center justify-center p-4" style="background-color: rgba(15, 23, 42, 0.58); backdrop-filter: blur(10px);">
+        <div class="card-bg border rounded-3xl shadow-2xl w-full max-w-md p-6 sm:p-7 space-y-5 relative">
+            <div class="flex items-center justify-between gap-2">
+                <div>
+                    <div class="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full profile-tag mb-1">Upload</div>
+                    <h3 class="text-xl font-extrabold">Upload photo</h3>
+                </div>
+                <button type="button" onclick="closePhotoUploadModal()" class="custom-styled-select px-3 py-1.5 rounded-full text-xs font-bold cursor-pointer">✕</button>
+            </div>
+
+            <div id="photo-dropzone"
+                 ondragover="event.preventDefault(); this.classList.add('border-sky-400');"
+                 ondragleave="this.classList.remove('border-sky-400');"
+                 ondrop="handlePhotoModalDrop(event)"
+                 onclick="document.getElementById('modal-photo-file-input').click();"
+                 class="box-content-bg border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition space-y-2">
+                <div class="text-2xl">📥</div>
+                <div class="text-xs sm:text-sm font-bold">Drag a file here or click to choose</div>
+                <div id="photo-modal-selected-filename" class="text-[11px] sub-text truncate">No file selected yet</div>
+                <input type="file" id="modal-photo-file-input" accept="image/*" onchange="handlePhotoModalFileSelect(event)" class="hidden">
+            </div>
+
+            <div class="space-y-1.5">
+                <label for="modal-photo-section-select" class="block text-xs font-bold sub-text">Select section</label>
+                <select id="modal-photo-section-select" class="custom-styled-select w-full rounded-xl px-3.5 py-2.5 text-xs sm:text-sm font-semibold outline-none cursor-pointer">
+                    <option value="Unassigned" selected>Unassigned</option>
+                    <option value="Reading">Reading</option>
+                    <option value="Math">Math</option>
+                    <option value="Logic">Logic &amp; Data</option>
+                    <option value="Biology">Biology</option>
+                    <option value="Chemistry">Chemistry</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Trash">Trash</option>
+                </select>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-1">
+                <button type="button" onclick="closePhotoUploadModal()" class="custom-styled-select px-4 py-2 rounded-full text-xs font-bold cursor-pointer">Cancel</button>
+                <button type="button" onclick="submitPhotoUploadModal()" class="profile-accent-btn px-5 py-2 rounded-full text-xs font-bold cursor-pointer">Add</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Custom Site-Styled Confirmation & Notice Modal -->
+    <div id="site-confirm-modal" class="hide fixed inset-0 z-[70] flex items-center justify-center p-4" style="background-color: rgba(15, 23, 42, 0.56); backdrop-filter: blur(10px);">
+        <div class="card-bg border rounded-3xl shadow-2xl w-full max-w-sm p-6 sm:p-7 space-y-5 relative" style="border-color: var(--accent-color); box-shadow: 0 0 0 1px var(--accent-color), 0 20px 50px -10px var(--accent-soft);">
+            <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div id="site-confirm-icon" class="w-10 h-10 rounded-2xl profile-tag flex items-center justify-center text-lg font-extrabold flex-shrink-0">↻</div>
+                    <div class="min-w-0">
+                        <div id="site-confirm-badge" class="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full profile-tag mb-0.5">Подтверждение</div>
+                        <h3 id="site-confirm-title" class="text-base sm:text-lg font-extrabold leading-snug">Подтвердите действие</h3>
+                    </div>
+                </div>
+                <button type="button" id="site-confirm-close-x" class="custom-styled-select px-2.5 py-1 rounded-full text-xs font-bold cursor-pointer flex-shrink-0">✕</button>
+            </div>
+            <p id="site-confirm-message" class="text-xs sm:text-sm sub-text leading-relaxed"></p>
+            <div class="flex items-center justify-end gap-2 pt-1">
+                <button type="button" id="site-confirm-cancel-btn" class="custom-styled-select px-4 py-2 rounded-full text-xs font-bold cursor-pointer transition">Отмена</button>
+                <button type="button" id="site-confirm-ok-btn" class="profile-accent-btn px-5 py-2 rounded-full text-xs font-bold cursor-pointer transition">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
